@@ -1,6 +1,6 @@
 # Donizo Material Scraper
 
-A Python-based web scraper that extracts renovation material pricing data from major French suppliers and structures it in a developer- and product-friendly format for Donizo's pricing engine.
+A Python-based web scraper that extracts renovation material pricing data from major French suppliers (Castorama, Leroy Merlin, and ManoMano) and structures it in a developer- and product-friendly format for Donizo's pricing engine.
 
 ## 🎯 Objective
 
@@ -9,29 +9,38 @@ Scrape real renovation material pricing data from French suppliers and structure
 ## 🏗️ Project Structure
 
 ```
-donizo-material-scraper/
-├── scraper.py                 # Main orchestrator
+Donizo_Test_Case_2/
+├── scraper.py                    # Main orchestrator
+├── run_scrapers_parallel.py      # Parallel execution script
+├── run_scrapers_subprocess.py    # Subprocess execution script
 ├── config/
-│   └── scraper_config.yaml    # Configuration file
+│   └── scraper_config.yaml       # Configuration file
 ├── scrapers/
 │   ├── __init__.py
-│   ├── castorama_scraper.py   # Castorama scraper (original logic)
-│   ├── leroymerlin_scraper.py # Leroy Merlin scraper (original logic)
-│   └── manomano_scraper.py    # ManoMano scraper (original logic)
+│   ├── castorama_scraper.py      # Castorama scraper
+│   ├── leroymerlin_scraper.py    # Leroy Merlin scraper
+│   └── manomano_scraper.py       # ManoMano scraper
 ├── utils/
 │   ├── __init__.py
-│   └── data_processor.py      # Data processing and structuring
+│   ├── data_processor.py         # Data processing and structuring
+│   └── logger.py                 # Logging utilities
 ├── api/
 │   ├── __init__.py
-│   └── server.py              # FastAPI server for data access
+│   └── server.py                 # FastAPI server for data access
 ├── tests/
 │   ├── __init__.py
-│   └── test_scraper.py        # Unit tests
+│   └── test_scraper.py           # Unit tests
 ├── data/
-│   └── materials.json         # Sample output
-├── requirements.txt           # Python dependencies
-├── .gitignore                # Git ignore rules
-└── README.md                 # This file
+│   └── materials.json            # Sample output
+├── output/
+│   ├── data/                     # Scraped data output
+│   ├── logs/                     # Log files
+│   └── reports/                  # Scraping reports
+├── logs/                         # Additional log directory
+├── requirements.txt              # Python dependencies
+├── scraper.log                   # Main scraper log
+├── .gitignore                    # Git ignore rules
+└── README.md                     # This file
 ```
 
 ## 🚀 Quick Start
@@ -68,6 +77,18 @@ Run all scrapers with default configuration:
 python scraper.py
 ```
 
+### Parallel Execution
+
+Run all scrapers in parallel using threading:
+```bash
+python run_scrapers_parallel.py
+```
+
+Run scrapers as separate processes:
+```bash
+python run_scrapers_subprocess.py
+```
+
 ### Advanced Usage
 
 Run specific suppliers:
@@ -94,7 +115,7 @@ python scraper.py --output data/my_materials.json
 
 The scraper uses a YAML configuration file (`config/scraper_config.yaml`) to define:
 
-- **Suppliers**: Which suppliers to scrape
+- **Suppliers**: Which suppliers to scrape (castorama, leroymerlin, manomano)
 - **Categories**: Product categories to target
 - **Scraping settings**: Timeouts, delays, retries
 - **Output settings**: File paths, data format
@@ -119,15 +140,16 @@ categories:
   - Vanités
 
 scraping:
-  delay_between_requests: 2
-  timeout: 30
-  max_retries: 3
-  max_products_per_category: 100
+  request_timeout: 30
+  max_retries: 5
+  delay_between_requests: 1
+  user_agent_rotation: true
 
 output:
-  file: data/materials.json
-  format: json
-  backup_previous: true
+  base_directory: "output"
+  data_directory: "output/data"
+  logs_directory: "output/logs"
+  reports_directory: "output/reports"
 ```
 
 ## 📊 Output Format
@@ -167,48 +189,12 @@ The scraper produces structured JSON data with the following format:
       "unit_count": "0.52 m²",
       "rating": 4.45,
       "rating_count": 20,
-      "catgroy_path": "Carrelage, parquet et sol souple > Carrelage > Carrelage de sol intérieur > Carreaux de ciment",
+      "category_path": "Carrelage, parquet et sol souple > Carrelage > Carrelage de sol intérieur > Carreaux de ciment",
       "product_url": "https://www.manomano.fr/p/carrelage-aspect-ciment-decore-vieilli-20x20-cm-strymon-052-m-35313125",
       "image_url": [
-        "https://cdn.manomano.com/images/images_products/29803958/L/132162369_1.jpg",
-        "https://cdn.manomano.com/images/images_products/29803958/L/132162369_2.jpg",
-        "https://cdn.manomano.com/images/images_products/29803958/L/132162369_3.jpg",
-        "https://cdn.manomano.com/images/images_products/29803958/L/132162369_4.jpg",
-        "https://cdn.manomano.com/images/images_products/29803958/L/132162369_5.jpg",
-        "https://cdn.manomano.com/images/images_products/29803958/L/132162369_6.jpg"
+        "https://cdn.manomano.com/images/images_products/29803958/L/132162369_1.jpg"
       ],
-      "description": "Description généraleDécouvrez le carrelage aspect ciment décoré vieilli 20x20 cm STRYMON, parfait pour apporter une touche moderne et élégante à vos espaces intérieurs ou à vos terrasses couvertes. Ce carrelage en grès cérame combine esthétique et robustesse, offrant une surface mate qui résiste au gel.Spécifications techniquesType : grès cérame émailléDestination : Sol ou mur, intérieur et terrasse couverteRésistance : Résistant au gelSurface : MateDimensions : 20 cm x 20 cmÉpaisseur : 8 mmStyle : CimentUnité de vente : 0.52 m²Poids par m² : 10.7 kgCompatibilité et accessoiresProduit pour entretien régulier recommandé : FilaCleanerNettoyant de fin de chantier recommandé : DeterdekInstallationPour une installation optimale, suivez les recommandations du fabricant concernant la préparation du support et le choix des colles adaptées au grès cérame.UtilisationIdéal pour les zones à fort trafic, ce carrelage est parfait pour les salons, cuisines et terrasses couvertes, offrant à la fois style et durabilité.Autres informationsCe carrelage est conçu pour résister à l'usure et est facile à entretenir, ce qui en fait un choix pratique pour votre projet de rénovation ou de construction."
-    },
-    {
-      "product_id": 88690989,
-      "product_name": "Carrelage Effet Zellige MITTE Ocean 6,5x20cm (0,35m2 ) - Les Carreaux de Jean",
-      "brand": "BESTILE",
-      "category": "Carrelage",
-      "price": {
-        "discount_price": 20.12,
-        "original_price": 22.29,
-        "unit_measurement": {
-          "price": 57.49,
-          "unit": "m²"
-        },
-        "currency": "EUR"
-      },
-      "measurement": {
-        "length": "20.0",
-        "width": "6.5",
-        "unit": "cm"
-      },
-      "unit_count": "0.35 m²",
-      "rating": 0,
-      "rating_count": 0,
-      "catgroy_path": "Carrelage, parquet et sol souple > Carrelage > Carrelage de sol intérieur > Carrelage sol uni",
-      "product_url": "https://www.manomano.fr/p/carrelage-effet-zellige-mitte-ocean-65x20cm-035m2-les-carreaux-de-jean-68566294",
-      "image_url": [
-        "https://cdn.manomano.com/images/images_products/29803958/L/88690989_1.jpg",
-        "https://cdn.manomano.com/images/images_products/29803958/L/88690989_2.jpg",
-        "https://cdn.manomano.com/images/images_products/29803958/L/88690989_3.jpg"
-      ],
-      "description": "Description généraleL’effet zellige, souvent utilisé dans les salles de bain et les cuisines, ajoute de la couleur et une touche d’authenticité à vos murs. Originaire du Maroc, le zellige est un carreau emblématique de la culture marocaine, apprécié pour ses couleurs vives et son aspect artisanal. Il crée une atmosphère chaleureuse et accueillante, idéale pour des espaces de vie dynamiques.Spécifications techniquesSérie MitteCarrelage effet zelligeDimensions : 6,5 x 20 cm6 coloris disponiblesEffet matMatériau : grès cérameÉpaisseur : 9 mmPose possible au sol et sur les mursBoîte de 0,35 m² (27 pièces)Compatibilité et accessoiresCompatible avec tous types d'adhésifs pour carrelagePeut être associé à des joints de couleur pour un rendu personnaliséInstallationPréparez la surface en la nettoyant et en la nivelantAppliquez l'adhésif uniformémentPosez les carreaux en veillant à respecter les espaces de jointoiementLaissez sécher selon les recommandations du fabricantUtilisationIdéal pour des applications murales et au sol dans des espaces intérieursFacile à nettoyer et à entretenir grâce à son matériau en grès cérameAjoute une touche décorative unique à votre intérieur"
+      "description": "Description généraleDécouvrez le carrelage aspect ciment décoré vieilli 20x20 cm STRYMON..."
     }
   ]
 }
@@ -297,16 +283,19 @@ pytest tests/test_scraper.py::TestCastoramaScraper
 - **Retry Logic**: Automatic retries for failed requests
 - **Error Handling**: Graceful handling of network errors
 
-## ⭐ Bonus Features
+## ⭐ Features
 
 ### ✅ Implemented
-- **API Simulation**: FastAPI server with RESTful endpoints
+- **Multi-Supplier Support**: Castorama, Leroy Merlin, ManoMano
+- **Parallel Execution**: Threading and subprocess options
+- **API Server**: FastAPI server with RESTful endpoints
 - **YAML Configuration**: Modular configuration system
 - **Data Structuring**: Vector DB-ready output format
 - **Timestamped Data**: Version tracking with timestamps
 - **Availability Logic**: Out-of-stock detection
 - **Comprehensive Testing**: Unit tests for all components
 - **Logging**: Detailed logging for monitoring and debugging
+- **Error Handling**: Robust error handling and recovery
 
 ### 🔮 Future Enhancements
 - **Auto-sync Pipeline**: Monthly automated scraping
@@ -341,7 +330,7 @@ pytest tests/test_scraper.py::TestCastoramaScraper
 - Adjust `delay_between_requests` in config
 - Use specific suppliers/categories for targeted scraping
 - Monitor logs for performance bottlenecks
-- Consider running scrapers in parallel (future enhancement)
+- Use parallel execution for faster scraping
 
 ### Expected Performance
 - **Castorama**: ~50-100 products per category
@@ -374,11 +363,11 @@ This project is developed for the Donizo Material Scraper challenge.
 ## 📞 Support
 
 For questions or issues:
-1. Check the logs in `scraper.log`
+1. Check the logs in `scraper.log` and `output/logs/`
 2. Review the configuration file
 3. Run tests to verify functionality
 4. Check the API documentation
 
 ---
 
-**Note**: This scraper preserves the original logic of the provided scraper files while adding structured output, API access, and comprehensive testing to meet the Donizo challenge requirements.
+**Note**: This scraper extracts renovation material pricing data from French suppliers and structures it for Donizo's pricing engine, with support for parallel execution and comprehensive error handling.
