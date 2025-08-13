@@ -1,0 +1,75 @@
+# Donizo Material Scraper Configuration
+
+# Suppliers to scrape
+suppliers:
+  - castorama
+  - leroymerlin
+  - manomano
+
+# Categories to scrape
+categories:
+  - Peinture
+  - Lavabos
+  - Toilettes
+  - Meubles-lavabos
+  - Douches
+  - Carrelage
+  - Éviers
+  - Vanités
+
+# Scraping settings
+scraping:
+  request_timeout: 30
+  max_retries: 5
+  delay_between_requests: 1
+  user_agent_rotation: true
+
+# Output settings
+output:
+  base_directory: "output"
+  data_directory: "output/data"
+  logs_directory: "output/logs"
+  reports_directory: "output/reports"
+  file_format: "json"
+  include_timestamps: true
+  compress_output: false
+
+# Data processing settings
+data_processing:
+  price_currency: "EUR"
+  measurement_unit: "cm"
+  remove_duplicates: true
+  validate_urls: true
+  normalize_brands: true
+
+# API settings (for bonus feature)
+api:
+  enabled: true
+  host: "localhost"
+  port: 8000
+  debug: false
+
+# Logging settings
+logging:
+  level: "INFO"
+  format: "detailed"
+  rotation:
+    max_size_mb: 10
+    backup_count: 5
+  separate_error_logs: true
+  console_output: true
+  file_output: true
+
+# Performance settings
+performance:
+  max_concurrent_requests: 3
+  rate_limiting: true
+  requests_per_second: 2
+  timeout_multiplier: 1.5
+
+# Error handling
+error_handling:
+  continue_on_error: true
+  max_errors_per_supplier: 10
+  retry_failed_requests: true
+  log_all_errors: true

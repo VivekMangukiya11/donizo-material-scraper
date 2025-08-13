@@ -1,0 +1,89 @@
+[
+  {
+    "id": "castorama_sample_001",
+    "supplier": "castorama",
+    "category": "tiles",
+    "product_name": "Carrelage sol et mural gris 30x60 cm",
+    "brand": "Castorama",
+    "price": "29.99",
+    "price_currency": "EUR",
+    "original_price": "39.99",
+    "discount_rate": "25%",
+    "product_url": "https://www.castorama.fr/carrelage-sol-et-mural-gris-30x60-cm/",
+    "image_urls": [
+      "https://www.castorama.fr/images/carrelage-gris-1.jpg",
+      "https://www.castorama.fr/images/carrelage-gris-2.jpg"
+    ],
+    "measurement": {
+      "width": "30",
+      "length": "60",
+      "unit": "cm"
+    },
+    "rating": "4.5",
+    "availability": "in_stock",
+    "sku_id": "CAST001",
+    "description": "Carrelage sol et mural gris 30x60 cm, résistant et facile à poser",
+    "timestamp": "2024-01-15T10:30:00Z",
+    "metadata": {
+      "scraped_at": "2024-01-15T10:30:00Z",
+      "supplier_id": "castorama_castorama_sample_001",
+      "data_version": "1.0"
+    }
+  },
+  {
+    "id": "leroymerlin_sample_001",
+    "supplier": "leroymerlin",
+    "category": "paint",
+    "product_name": "Peinture murale blanche mate 10L",
+    "brand": "Leroy Merlin",
+    "price": "24.99",
+    "price_currency": "EUR",
+    "product_url": "https://www.leroymerlin.fr/peinture-murale-blanche-mate-10l/",
+    "image_urls": [
+      "https://www.leroymerlin.fr/images/peinture-blanche-1.jpg"
+    ],
+    "measurement": {
+      "volume": "10",
+      "unit": "L"
+    },
+    "rating": "4.2",
+    "availability": "in_stock",
+    "sku_id": "LM001",
+    "description": "Peinture murale blanche mate 10L, couvrance 12m²/L",
+    "timestamp": "2024-01-15T10:30:00Z",
+    "metadata": {
+      "scraped_at": "2024-01-15T10:30:00Z",
+      "supplier_id": "leroymerlin_leroymerlin_sample_001",
+      "data_version": "1.0"
+    }
+  },
+  {
+    "id": "manomano_sample_001",
+    "supplier": "manomano",
+    "category": "sinks",
+    "product_name": "Évier cuisine inox 1 bac",
+    "brand": "KITCHEN",
+    "price": "89.99",
+    "price_currency": "EUR",
+    "product_url": "https://www.manomano.fr/evier-cuisine-inox-1-bac/",
+    "image_urls": [
+      "https://www.manomano.fr/images/evier-inox-1.jpg",
+      "https://www.manomano.fr/images/evier-inox-2.jpg"
+    ],
+    "measurement": {
+      "width": "60",
+      "length": "50",
+      "unit": "cm"
+    },
+    "rating": "4.7",
+    "availability": "in_stock",
+    "sku_id": "MM001",
+    "description": "Évier cuisine inox 1 bac, dimensions 60x50 cm",
+    "timestamp": "2024-01-15T10:30:00Z",
+    "metadata": {
+      "scraped_at": "2024-01-15T10:30:00Z",
+      "supplier_id": "manomano_manomano_sample_001",
+      "data_version": "1.0"
+    }
+  }
+]
