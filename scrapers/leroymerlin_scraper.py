@@ -30,7 +30,7 @@ class LeroymerlinScraper:
             'sec-fetch-dest': 'empty',
             'sec-fetch-mode': 'cors',
             'sec-fetch-site': 'same-origin',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36'
         }
         self.session = requests.Session()
         retry_strategy = Retry(
@@ -95,107 +95,152 @@ class LeroymerlinScraper:
                 self.logger.log_error(e, "append_products_incrementally")
 
     def product_parser(self, soup, keyword):
+        try:
+            products = []
+            for tag in soup.find_all("script", {"type": "application/json", "class": "dataTms"}):
+                text = (tag.string or tag.get_text() or "").strip()
+                if not text:
+                    continue
+                try:
+                    data = json.loads(text)
+                except json.JSONDecodeError:
+                    continue
 
-        # soup = BeautifulSoup(html_content, 'html.parser')
-        script_tags = soup.find_all("script", {"type": "application/json", "class": "dataTms"})
-        products = []
-        
-        if len(script_tags) > 8:
-            ninth_script = script_tags[8]  # 9th occurrence (0-based index)
-            
-            # The JSON data is inside the script tag text
-            json_text = ninth_script.string.strip()
-            
-            # Load JSON data
-            try:
-                data = json.loads(json_text)
-                for j_data in data[0]['value']:
-                    product_dict = {}
-                    try:
-                        product_dict["sku_id"] = j_data["sku"]
-                    except:
-                        product_dict["sku_id"] = ''
+                items = data if isinstance(data, list) else [data]
+                for item in items:
+                    if isinstance(item, dict) and item.get("name") == "cdl_products_list":
 
-                    try:
-                        product_dict["product_name"] = j_data['name']
-                    except:
-                        product_dict["product_name"] = ''
-                    
-                    try:
-                        product_dict["brand"] = j_data['brand']
-                    except:
-                        product_dict["brand"] = ''
+                        try:    
+                            data = items
+                            for j_data in data[0]['value']:
+                                product_dict = {}
+                                try:
+                                    product_dict["product_id"] = j_data["sku"]
+                                except:
+                                    product_dict["product_id"] = ''
 
-                    product_dict["category"] = keyword
+                                try:
+                                    product_dict["product_name"] = j_data['name']
+                                except:
+                                    product_dict["product_name"] = ''
+                                
+                                try:
+                                    product_dict["brand"] = j_data['brand']
+                                except:
+                                    product_dict["brand"] = ''
 
-                    try:
-                        product_url = "https://www.leroymerlin.fr" + j_data['url']
-                        product_dict["product_url"] = product_url
-                        
-                        in_response = Request().get(url=product_url, headers=self.headers, data=self.payload)
-                        in_soup = BeautifulSoup(in_response.text, 'html.parser')
+                                product_dict["category"] = keyword
+                                
+                                price = {}
+                                try:
+                                    price["price"] = j_data["offer"]['unitprice_ati']
+                                except:
+                                    price["price"] = ''
+                                try:
+                                    price["original_price"] = j_data["offer"]['initial_price']
+                                except:
+                                    price["original_price"] = ''
 
-                        div_thumbnails = in_soup.find("div", class_="m-nav-thumbnails js-nav-thumbnails mu-pt-100")
-                        image_urls = []
-                        if div_thumbnails:
-                            imgs = div_thumbnails.find_all("img")
-                            for img in imgs:
-                                url = img.get("data-src").split('?')[0] or img.get("src").split('?')[0]
-                                if url:
-                                    image_urls.append(url)
-                            
-                        product_dict["image_urls"] = image_urls
+                                price["unit_measurement"] = {"price": "", "unit": ""}
 
-                        measurement = {}
-                        # Extract width (Largeur)
-                        th_tag = in_soup.find("th", string=lambda text: text and text.strip().lower() == "Largeur (en cm)")
-                        if th_tag:
-                            td_tag = th_tag.find_next("td")
-                            if td_tag:
-                                measurement["width"] = td_tag.get_text(strip=True)
+                                try:
+                                    product_url = "https://www.leroymerlin.fr" + j_data['url']
 
-                        # Extract height (Hauteur)
-                        th_tag = in_soup.find("th", string=lambda text: text and text.strip().lower() == "Longueur (en cm)")
-                        if th_tag:
-                            td_tag = th_tag.find_next("td")
-                            if td_tag:
-                                measurement["length"] = td_tag.get_text(strip=True)
-                        product_dict["measurement"] = measurement
-                    except Exception as e:
-                        print(f"❌ Error in product_url: {e}")
+                                    in_response = Request().get(url=product_url, headers=self.headers, data=self.payload)
+                                    in_soup = BeautifulSoup(in_response.text, 'html.parser')
 
-                    try:
-                        product_dict["initial_price"] = j_data["offer"]['initial_price']
-                    except:
-                        product_dict["initial_price"] = ''
+                                    measurement = {"length": "", "width": "", "unit": "" }
 
-                    try:
-                        product_dict["discount_rate"] = j_data["offer"]['discount_rate'] + "%"
-                    except:
-                        product_dict["discount_rate"] = ''
+                                    # Extract width (Largeur)
+                                    try:
+                                        th_tag = in_soup.find("th", string=lambda text: text and text.strip().lower() == "Largeur (en cm)")
+                                        if th_tag:
+                                            td_tag = th_tag.find_next("td")
+                                            if td_tag:
+                                                measurement["width"] = td_tag.get_text(strip=True)
+                                    except:
+                                        pass
 
-                    try:
-                        product_dict["price"] = j_data["offer"]['unitprice_ati']
-                    except:
-                        product_dict["price"] = ''
-                    
-                    try:
-                        product_dict["rating"] = j_data["rating"]
-                    except:
-                        product_dict["rating"] = ''
-                    
-                    products.append(product_dict)
-                    print(product_dict)
-            except json.JSONDecodeError as e:
-                print("JSON decoding failed:", e)
+                                    try:
+                                        th_tag = in_soup.find("th", string=lambda text: text and text.strip().lower() == "Hauteur (en cm)")
+                                        if th_tag:
+                                            td_tag = th_tag.find_next("td")
+                                            if td_tag:
+                                                measurement["length"] = td_tag.get_text(strip=True)
+                                                measurement["unit"] = "cm"
+                                    except:
+                                        pass
+
+                                    try:
+                                        prod = in_soup.find('script', {'id':'jsonld_PRODUCT'}).text.strip()
+                                        j_prod = json.loads(prod)
+                                        try:
+                                            price["currency"] = j_prod[0]["offers"]["priceCurrency"]
+                                        except:
+                                            price["currency"] = ""
+                                        product_dict["price"] = price
+                                        product_dict["measurement"] = measurement
+                                        product_dict["unit_count"] = ""
+                                        
+                                        try:
+                                            product_dict["rating"] = j_prod[0]["aggregateRating"]["ratingValue"]
+                                            product_dict["rating_count"] = j_prod[0]["aggregateRating"]["reviewCount"]
+                                        except:
+                                            product_dict["rating"] = ""
+                                            product_dict["rating_count"] = ""
+
+                                        try:
+                                            cate_path_ = []
+                                            cate_path = in_soup.find('script', {'id':'jsonld_BREADCRUMB'}).text.strip()
+                                            j_cate = json.loads(cate_path)
+                                            for path in j_cate["itemListElement"]:
+                                                cate_path_.append(path["item"]["name"])
+                                            cate_path_str = " > ".join(cate_path_)            
+                                            product_dict["category_path"] = cate_path_str
+                                        except:
+                                            product_dict["category_path"] = ""
+
+                                        product_dict["product_url"] = product_url
+
+                                        try:
+                                            div_thumbnails = in_soup.find("div", class_="m-nav-thumbnails js-nav-thumbnails mu-pt-100")
+                                            image_urls = []
+                                            if div_thumbnails:
+                                                imgs = div_thumbnails.find_all("img")
+                                                for img in imgs:
+                                                    url = img.get("data-src").split('?')[0] or img.get("src").split('?')[0]
+                                                    if url:
+                                                        image_urls.append(url)
+                                            product_dict["image_url"] = image_urls
+                                        except:
+                                            product_dict["image_url"] = ""
+
+                                        try:
+                                            product_dict["description"] = j_prod[0]["description"]
+                                        except:
+                                            product_dict["description"] = ""
+
+                                    except Exception as e:
+                                        self.logger.log_error(f"product json error: ", {e})
+
+                                except Exception as e:
+                                    self.logger.log_error(f"❌ Error in product_url: {e}")
+                                
+                                products.append(product_dict)
+                        except json.JSONDecodeError as e:
+                            self.logger.log_error("JSON decoding failed:", e)
+
+        except Exception as e:
+            self.logger.log_error(e, "product JSON decoding")
+
         return products
     
     
     def scrape_category_page(self, url):
-        print(f"Fetching category page: {url}")
+        self.logger.log_info(f"Fetching category page: {url}")
         response = self.session.get(url, headers=self.headers, timeout=self.request_timeout_seconds, proxies=self._next_proxies())
         if response.status_code != 200:
-            print(f"Failed to fetch {url}, status code {response.status_code}")
+            self.logger.log_info(f"Failed to fetch {url}, status code {response.status_code}")
             return []
 
         soup = BeautifulSoup(response.text, "html.parser")
@@ -218,7 +263,7 @@ class LeroymerlinScraper:
         while True:
             # Append pagination param if needed; adjust URL accordingly if required
             paged_url = f"{url}?p={page}" if "?" not in url else f"{url}&p={page}"
-            print(f"📄 Fetching: {paged_url}")
+            self.logger.log_info(f"📄 Fetching: {paged_url}")
 
             response = self.session.get(
                 paged_url,
@@ -266,7 +311,7 @@ class LeroymerlinScraper:
             
             response = self.session.get(
                 search_url,
-                headers=self.headers,
+                headers=self.headers,   
                 timeout=self.request_timeout_seconds,
                 proxies=self._next_proxies(),
             )
